@@ -1,0 +1,19 @@
+name: transmota_plug_controll
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0-282.2.beta <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  heart: ^0.1.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
