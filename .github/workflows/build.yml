@@ -1,0 +1,71 @@
+name: '🛠️ Build'
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_CHANNEL: 'beta'
+  JAVA_VERSION: '17'
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build linux
+        run: flutter build linux --release
+      - name: compress bundle
+        run: tar -czf linux-bundle.tar.xz build/linux/x64/release/bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: linux-bundle.tar.xz
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+      - name: Setup java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: ${{ env.JAVA_VERSION }}
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build combined APK
+        run: flutter build apk --release
+      - name: Build split APKs
+        run: flutter build apk --release --split-per-abi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Build windows
+        run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: build/windows/x64/
