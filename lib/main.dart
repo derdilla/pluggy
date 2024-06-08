@@ -9,7 +9,7 @@ import 'app.dart';
 import 'dev/manager.dart';
 
 void main() async {
-  //WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   final manager = await _loadManager();
   manager.addListener(() => unawaited(_saveManager(manager)));
 
