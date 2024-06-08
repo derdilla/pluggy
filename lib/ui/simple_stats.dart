@@ -7,7 +7,7 @@ class SimpleStats extends StatelessWidget {
   final double total;
 
   /// Current consumption in W.
-  final double current; // TODO: stream
+  final double current;
 
   @override
   Widget build(BuildContext context) {

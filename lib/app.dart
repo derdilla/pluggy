@@ -13,7 +13,7 @@ class PlugControlApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     theme: ThemeData.dark(),
     home: Scaffold(
-      body: Provider(
+      body: ChangeNotifierProvider(
         create: (_) => Manager(),
         child: const CustomScrollView(
           slivers: [

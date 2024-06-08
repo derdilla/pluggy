@@ -2,34 +2,41 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:heart/heart.dart';
+import 'package:provider/provider.dart';
+import 'package:transmota_plug_controll/dev/plug.dart';
+import 'package:transmota_plug_controll/dev/status.dart';
 
 import 'simple_stats.dart';
 
 class DeviceControl extends StatelessWidget {
-  const DeviceControl({super.key, required this.address});
+  const DeviceControl({super.key, required this.plug});
 
   /// IP-Address and port of the plug to control.
-  final String address;
+  final Plug plug;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement logic
-    final rng = Random(address.codeUnits.sum());
-    final total = rng.nextDouble() * 1000;
-    final current = rng.nextDouble() * 300;
-
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SwitchListTile(
-            title: Text(address),
-            value: true,
-            onChanged: (v) {}, // TODO: tile color
+            title: Text(plug.address),
+            value: plug.lastStatus.active,
+            onChanged: (v) {
+              if (plug.lastStatus.active) {
+                plug.off();
+              } else {
+                plug.on();
+              }
+            }, // TODO: tile color
           ),
-          SimpleStats(
-            total: total,
-            current: current,
+          StreamBuilder(
+            stream: plug.status,
+            builder: (context, snapshot) => SimpleStats(
+              total: snapshot.data?.total ?? 0.0,
+              current: snapshot.data?.current ?? 0.0,
+            ),
           ),
         ],
       ),

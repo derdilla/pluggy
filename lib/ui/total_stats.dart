@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:transmota_plug_controll/dev/manager.dart';
 
 import 'simple_stats.dart';
 
@@ -7,7 +9,12 @@ class TotalStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: actual data
-    return const SimpleStats(total: 123, current: 15,);
+    return StreamBuilder(
+      stream: context.watch<Manager>().total,
+      builder: (context, snapshot) => SimpleStats(
+        total: snapshot.data?.total ?? 0.0,
+        current: snapshot.data?.current ?? 0.0,
+      ),
+    );
   }
 }

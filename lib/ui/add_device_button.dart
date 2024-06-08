@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:transmota_plug_controll/dev/manager.dart';
 import 'package:transmota_plug_controll/ui/add_device_form.dart';
 
 class AddDeviceButton extends StatelessWidget {
@@ -6,7 +8,7 @@ class AddDeviceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement logic
+    final staticManager = context.read<Manager>();
     return Padding(
       padding: EdgeInsets.all(4),
       child: InkWell(
@@ -39,7 +41,9 @@ class AddDeviceButton extends StatelessWidget {
                   scale: animation,
                   child: Material(
                     child: Card(
-                      child: AddDeviceForm(),
+                      child: AddDeviceForm(
+                        onAddPlug: staticManager.add,
+                      ),
                     ),
                   ),
                 ),
