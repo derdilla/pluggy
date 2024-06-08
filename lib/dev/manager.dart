@@ -20,7 +20,7 @@ class Manager extends ChangeNotifier {
       .toList(),
   );
 
-  void serialize() => _plugs
+  String serialize() => _plugs
     .map((plug) => plug.address)
     .join(',');
 

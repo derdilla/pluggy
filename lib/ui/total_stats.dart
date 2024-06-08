@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:transmota_plug_controll/dev/manager.dart';
+import 'package:tasmota_plug_controll/dev/manager.dart';
 
 import 'simple_stats.dart';
 

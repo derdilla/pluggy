@@ -3,21 +3,21 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:transmota_plug_controll/dev/status.dart';
+import 'package:tasmota_plug_controll/dev/status.dart';
 
 class Plug {
   Plug(this.address) {
-    Timer.periodic(Duration(milliseconds: 100), (Timer t) => _updateStatus());
-    Timer.periodic(Duration(seconds: 1), (Timer t) => _updateActive());
+    _updateStatus();
+    Timer.periodic(Duration(milliseconds: 50), (Timer t) => _updateStatus());
+    // TODO: consider interpolation
     status.listen((status) => _lastStatus = status);
   }
 
   /// Address in format: `192.168.178.46
   final String address;
 
-  final StreamController<Status> _streamController = StreamController.broadcast();
-
-  bool _active = false;
+  final StreamController<Status> _streamController = StreamController
+    .broadcast();
 
   Status _lastStatus = Status.none();
 
@@ -32,13 +32,13 @@ class Plug {
   Future<void> on() async {
     final response = await _sendCommand('Power ON');
     assert(response == '{"POWER":"ON"}');
-    _active = true;
+    _updateStatus();
   }
 
   Future<void> off() async {
     final response = await _sendCommand('Power OFF');
     assert(response == '{"POWER":"OFF"}');
-    _active = false;
+    _updateStatus();
   }
 
   Stream<Status> get status => _streamController.stream;
@@ -66,33 +66,31 @@ class Plug {
       final Map<String, dynamic> energyMap = json['StatusSNS']['ENERGY'];
 
       _streamController.add(Status(
-        _active,
+        await _fetchActive(),
         (energyMap['Total'] is int)
           ? (energyMap['Total'] as int).toDouble()
           : (energyMap['Total'] as double),
         (energyMap['Power'] is int)
-            ? (energyMap['Power'] as int).toDouble()
-            : (energyMap['Power'] as double),
+          ? (energyMap['Power'] as int).toDouble()
+          : (energyMap['Power'] as double),
       ));
+    } on http.ClientException {
+      // Do nothing
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
     }
   }
 
-  Future<void> _updateActive() async {
+  Future<bool> _fetchActive() async {
     final String response = await _sendCommand('Power');
 
-    final updates = ((response == '{"POWER":"ON"}') != _active);
-
     if (response == '{"POWER":"ON"}') {
-      _active = true;
+      return true;
     } else {
       assert(response == '{"POWER":"OFF"}');
-      _active = false;
+      return false;
     }
-
-    if (updates) await _updateStatus();
   }
-
+  // When problems: consider power separate from data.
 }

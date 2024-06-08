@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:transmota_plug_controll/dev/manager.dart';
-import 'package:transmota_plug_controll/ui/add_device_form.dart';
+import 'package:tasmota_plug_controll/dev/manager.dart';
+import 'package:tasmota_plug_controll/ui/add_device_form.dart';
 
 class AddDeviceButton extends StatelessWidget {
   const AddDeviceButton({super.key});
@@ -30,8 +30,6 @@ class AddDeviceButton extends StatelessWidget {
               final y = ((details.globalPosition.dy * 2)
                   / MediaQuery.of(context).size.height)
                 - 1.0;
-              print(x);
-              print(y);
               return AlignTransition(
                 alignment: Tween<AlignmentGeometry>(
                   begin: Alignment(x, y),

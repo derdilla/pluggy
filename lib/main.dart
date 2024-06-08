@@ -1,14 +1,39 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'app.dart';
-// import 'dev/plug_connection.dart';
-
+import 'dev/manager.dart';
 void main() async {
-  /* test code
-  final con = PlugConnection('192.168.178.46');
-  final sub = con.status.listen((d) => print(d));
-  await sub.asFuture();
-  */
-  // TODO: manager persistence
-  runApp(const PlugControlApp());
+  final manager = _loadManager();
+  manager.addListener(() => _saveManager(manager));
+
+  runApp(PlugControlApp(
+    manager: manager
+  ));
+}
+
+Manager _loadManager() {
+  final file = File('devlist');
+  if (file.existsSync()) {
+    try {
+      final data = file.readAsStringSync();
+      return Manager.deserialize(data);
+    } on FileSystemException {
+      try {
+        file.deleteSync();
+      } on FileSystemException {
+        // Do nothing
+      }
+    }
+  }
+  return Manager();
+}
+
+void _saveManager(Manager manager) {
+  try {
+    File('devlist').writeAsStringSync(manager.serialize());
+  } on FileSystemException {
+    print('Persisting data failed.');
+  }
 }
