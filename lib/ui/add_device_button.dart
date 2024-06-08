@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tasmota_plug_controll/dev/manager.dart';
-import 'package:tasmota_plug_controll/ui/add_device_form.dart';
+import 'package:tasmota_plug_control/dev/manager.dart';
+import 'package:tasmota_plug_control/ui/add_device_form.dart';
 
 class AddDeviceButton extends StatelessWidget {
   const AddDeviceButton({super.key});

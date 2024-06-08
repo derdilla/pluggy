@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.derdilla" "\0"
-            VALUE "FileDescription", "transmota_plug_controll" "\0"
+            VALUE "FileDescription", "tasmota_plug_control" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "transmota_plug_controll" "\0"
+            VALUE "InternalName", "tasmota_plug_control" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.derdilla. All rights reserved." "\0"
-            VALUE "OriginalFilename", "transmota_plug_controll.exe" "\0"
-            VALUE "ProductName", "transmota_plug_controll" "\0"
+            VALUE "OriginalFilename", "tasmota_plug_control.exe" "\0"
+            VALUE "ProductName", "tasmota_plug_control" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:tasmota_plug_controll/dev/status.dart';
+import 'package:tasmota_plug_control/dev/status.dart';
 
 class Plug {
   Plug(this.address) {

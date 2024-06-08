@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:tasmota_plug_controll/dev/plug.dart';
+import 'package:tasmota_plug_control/dev/plug.dart';
 
 import 'simple_stats.dart';
 

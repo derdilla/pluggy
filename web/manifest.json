@@ -1,6 +1,6 @@
 {
-    "name": "transmota_plug_controll",
-    "short_name": "transmota_plug_controll",
+    "name": "tasmota_plug_control",
+    "short_name": "tasmota_plug_control",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

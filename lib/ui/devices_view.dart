@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tasmota_plug_controll/dev/manager.dart';
+import 'package:tasmota_plug_control/dev/manager.dart';
 
 import 'device_control.dart';
 
