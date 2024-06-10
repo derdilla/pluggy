@@ -28,96 +28,93 @@ class Plug extends ChangeNotifier {
   /// Last [Status] obtained on the last call to [updateStatus].
   Status get status => _lastStatus;
 
-  bool _offline = false;
-
-  bool get offline => _offline;
-
   /// Attempts to send a command to the plug and returns it's json response.
   ///
-  /// It sends the request regardless of [offline]. When the plug is actually
-  /// offline "ERR-OFFLINE" will be returned. If not [offline] is updated.
-  Future<String> _sendCommand(String cmnd) async {
-    final url = Uri.http(address, 'cm', {
-      'cmnd': cmnd,
-    });
-    try {
-      await _client.get(url);
-      final response = await http.get(url);
-      if (offline) {
-        _offline = false;
-        notifyListeners();
+  /// All errors are caught and null is returned.
+  Future<String?> _sendCommand(String cmnd, [int maxRetryCount = 0]) async {
+    String? result;
+    while (result == null && maxRetryCount >= 0) {
+      maxRetryCount--;
+      final url = Uri.http(address, 'cm', {
+        'cmnd': cmnd,
+      });
+      try {
+        await _client.get(url);
+        final response = await http.get(url);
+        result = response.body;
+      } catch (e) {
+        // Since undocumented exception apart from http.ClientException were
+        // thrown (e.g. "Connection reset by peer", ...) network code isn't
+        // trusted. Users of this function can determine when to retry
+        // depending on context.
+        assert(result == null);
       }
-      return response.body;
-    } on http.ClientException {
-      // transport layer failure
-      if (!offline) {
-        _offline = true;
-        notifyListeners();
-      }
-      return "ERR-OFFLINE";
-    } catch (e) {
-      debugPrintStack();
-      print(e);
-      return "ERR-OFFLINE";
     }
-
+    return result;
   }
 
   /// Send a power on command to the plug regardless of state.
-  Future<void> on() async {
-    final response = await _sendCommand('Power ON');
-    if (offline) return;
-    assert(response == '{"POWER":"ON"}');
-    _lastStatus = _lastStatus.copyWith(active: true);
-    notifyListeners();
+  Future<bool> on() async {
+    String? response = await _sendCommand('Power ON', 5);
+    if(response == '{"POWER":"ON"}') {
+      _lastStatus = _lastStatus.copyWith(active: true);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   /// Send a power off command to the plug regardless of state.
-  Future<void> off() async {
-    final response = await _sendCommand('Power OFF');
-    if (offline) return;
-    assert(response == '{"POWER":"OFF"}');
-    _lastStatus = _lastStatus.copyWith(active: false);
-    notifyListeners();
+  Future<bool> off() async {
+    String? response = await _sendCommand('Power OFF', 5);
+    if(response == '{"POWER":"OFF"}') {
+      _lastStatus = _lastStatus.copyWith(active: false);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   /// Fetch latest information from the plug and update the cached [status].
   Future<Status> updateStatus() async {
-    try {
-      final response = await _sendCommand('status 10');
-      if (offline) return _lastStatus;
+    final response = await _sendCommand('status 10');
+    if (response != null) {
       final Map<String, dynamic> json = jsonDecode(response);
+      try {
+        // Sample:
+        // {
+        //   "TotalStartTime": "2024-06-07T18:30:35",
+        //   "Total": 0.447,
+        //   "Yesterday": 0.378,
+        //   "Today": 0.069,
+        //   "Power": 80,
+        //   "ApparentPower": 90,
+        //   "ReactivePower": 43,
+        //   "Factor": 0.88,
+        //   "Voltage": 226,
+        //   "Current": 0.400
+        // }
+        final Map<String, dynamic> energyMap = json['StatusSNS']['ENERGY'];
 
-      // Sample:
-      // {
-      //   "TotalStartTime": "2024-06-07T18:30:35",
-      //   "Total": 0.447,
-      //   "Yesterday": 0.378,
-      //   "Today": 0.069,
-      //   "Power": 80,
-      //   "ApparentPower": 90,
-      //   "ReactivePower": 43,
-      //   "Factor": 0.88,
-      //   "Voltage": 226,
-      //   "Current": 0.400
-      // }
-      final Map<String, dynamic> energyMap = json['StatusSNS']['ENERGY'];
+        final activeResponse = await _sendCommand('Power');
+        bool active = status.active;
+        if(activeResponse == '{"POWER":"ON"}') active = true;
+        else if(activeResponse == '{"POWER":"OFF"}') active = false;
 
-      _lastStatus = Status(
-        (await _sendCommand('Power') == '{"POWER":"ON"}'),
-        (energyMap['Total'] is int)
-            ? (energyMap['Total'] as int).toDouble()
-            : (energyMap['Total'] as double),
-        (energyMap['Power'] is int)
-            ? (energyMap['Power'] as int).toDouble()
-            : (energyMap['Power'] as double),
-      );
-      notifyListeners();
-    } on http.ClientException {
-      // Do nothing
-    } catch (e) {
-      debugPrint(e.toString());
-      debugPrintStack();
+        _lastStatus = Status(
+          active,
+          (energyMap['Total'] is int)
+              ? (energyMap['Total'] as int).toDouble()
+              : (energyMap['Total'] as double),
+          (energyMap['Power'] is int)
+              ? (energyMap['Power'] as int).toDouble()
+              : (energyMap['Power'] as double),
+        );
+        notifyListeners();
+      } on NoSuchMethodError {
+        // JSON format unexpected
+        debugPrint('status JSON has unexpected format: $json');
+      }
     }
     return _lastStatus;
   }
@@ -128,10 +125,9 @@ class Plug extends ChangeNotifier {
     other is Plug &&
       runtimeType == other.runtimeType &&
       address == other.address &&
-      _lastStatus == other._lastStatus &&
-      _offline == other._offline;
+      _lastStatus == other._lastStatus;
 
   @override
   int get hashCode =>
-    address.hashCode ^ _lastStatus.hashCode ^ _offline.hashCode;
+    address.hashCode ^ _lastStatus.hashCode;
 }

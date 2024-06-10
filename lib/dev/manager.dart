@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 
 import 'plug.dart';
 import 'status.dart';
@@ -12,7 +12,7 @@ class Manager extends ChangeNotifier {
   Manager({
     List<Plug>? plugs
   }) : _plugs = plugs ?? [] {
-    _updateTimer = Timer.periodic(Duration(milliseconds: 1000 ~/ 30), (timer) async {
+    _updateTimer = Timer.periodic(Duration(milliseconds: 1000 ~/ 15), (timer) async {
       final Iterable<Status> updated = await Future.wait(_plugs.map((plug) => plug.updateStatus()));
       _total = updated.fold(Status.none(), (a, b) => a + b);
       notifyListeners();
