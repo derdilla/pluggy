@@ -32,4 +32,5 @@ flutter_launcher_icons:
 
   min_sdk_android: 16
   adaptive_icon_background: #ffffff
+  adaptive_icon_foreground: "icon_outline.png"
   remove_alpha_ios: true
