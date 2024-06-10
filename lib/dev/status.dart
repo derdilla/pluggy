@@ -1,8 +1,14 @@
+/// Immutable fetched status of a plug.
 class Status {
-  Status(this.active, this.total, this.current);
+  Status(this.active, this.total, this.current)
+    : lastUpdate = DateTime.now();
 
   factory Status.none() => Status(false, 0, 0);
 
+  /// The time when this object was constructed.
+  final DateTime lastUpdate;
+
+  /// Whether the plug is transmitting power.
   final bool active;
 
   /// Total consumption in Wh.
@@ -23,4 +29,14 @@ class Status {
       current + other.current,
     );
   }
+
+  Status copyWith({
+    bool? active,
+    double? total,
+    double? current,
+  }) => Status(
+    active ?? this.active,
+    total  ?? this.total,
+    current ?? this.current,
+  );
 }

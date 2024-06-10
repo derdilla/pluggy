@@ -20,8 +20,8 @@ class PlugControlApp extends StatelessWidget {
         title: Text('Plugs'),
         centerTitle: true,
       ),
-      body: ChangeNotifierProvider(
-        create: (_) => manager,
+      body: ChangeNotifierProvider.value(
+        value: manager,
         child: const CustomScrollView(
           slivers: [
             SliverToBoxAdapter(child: TotalStats()),

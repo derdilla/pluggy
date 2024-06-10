@@ -1,53 +1,82 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:tasmota_plug_control/dev/status.dart';
 
-class Plug {
+/// Abstraction of a plug in the network that provides status and sends commands.
+class Plug extends ChangeNotifier {
+  /// Create Plug and start loading initial [status]. 
   Plug(this.address) {
-    _updateStatus();
-    Timer.periodic(Duration(milliseconds: 50), (Timer t) => _updateStatus());
-    // TODO: consider interpolation
-    status.listen((status) => _lastStatus = status);
+    updateStatus();
   }
 
-  /// Address in format: `192.168.178.46
+  /// Network address off the Plug to monitor.
+  ///
+  /// # Format examples:
+  /// - `192.168.178.46`
+  /// - `example.com`
   final String address;
-
-  final StreamController<Status> _streamController = StreamController
-    .broadcast();
 
   Status _lastStatus = Status.none();
 
+  /// Last [Status] obtained on the last call to [updateStatus].
+  Status get status => _lastStatus;
+
+  bool _offline = false;
+
+  bool get offline => _offline;
+
+  /// Attempts to send a command to the plug and returns it's json response.
+  ///
+  /// It sends the request regardless of [offline]. When the plug is actually
+  /// offline "ERR-OFFLINE" will be returned. If not [offline] is updated.
   Future<String> _sendCommand(String cmnd) async {
     final url = Uri.http(address, 'cm', {
       'cmnd': cmnd,
     });
-    final response = await http.get(url);
-    return response.body;
+    try {
+      final response = await http.get(url);
+      if (offline) {
+        _offline = false;
+        notifyListeners();
+      }
+      return response.body;
+    } on SocketException {
+      if (!offline) {
+        _offline = true;
+        notifyListeners();
+      }
+      return "ERR-OFFLINE";
+    }
+
   }
 
+  /// Send a power on command to the plug regardless of state.
   Future<void> on() async {
     final response = await _sendCommand('Power ON');
+    if (offline) return;
     assert(response == '{"POWER":"ON"}');
-    _updateStatus();
+    _lastStatus = _lastStatus.copyWith(active: true);
+    notifyListeners();
   }
 
+  /// Send a power off command to the plug regardless of state.
   Future<void> off() async {
     final response = await _sendCommand('Power OFF');
+    if (offline) return;
     assert(response == '{"POWER":"OFF"}');
-    _updateStatus();
+    _lastStatus = _lastStatus.copyWith(active: false);
+    notifyListeners();
   }
 
-  Stream<Status> get status => _streamController.stream;
-
-  Status get lastStatus => _lastStatus;
-
-  Future<void> _updateStatus() async {
+  /// Fetch latest information from the plug and update the cached [status].
+  Future<Status> updateStatus() async {
     try {
       final response = await _sendCommand('status 10');
+      if (offline) return _lastStatus;
       final Map<String, dynamic> json = jsonDecode(response);
 
       // Sample:
@@ -65,32 +94,35 @@ class Plug {
       // }
       final Map<String, dynamic> energyMap = json['StatusSNS']['ENERGY'];
 
-      _streamController.add(Status(
-        await _fetchActive(),
+      _lastStatus = Status(
+        (await _sendCommand('Power') == '{"POWER":"ON"}'),
         (energyMap['Total'] is int)
-          ? (energyMap['Total'] as int).toDouble()
-          : (energyMap['Total'] as double),
+            ? (energyMap['Total'] as int).toDouble()
+            : (energyMap['Total'] as double),
         (energyMap['Power'] is int)
-          ? (energyMap['Power'] as int).toDouble()
-          : (energyMap['Power'] as double),
-      ));
+            ? (energyMap['Power'] as int).toDouble()
+            : (energyMap['Power'] as double),
+      );
+      notifyListeners();
     } on http.ClientException {
       // Do nothing
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
     }
+    return _lastStatus;
   }
 
-  Future<bool> _fetchActive() async {
-    final String response = await _sendCommand('Power');
+  @override
+  bool operator ==(Object other) =>
+    identical(this, other) ||
+    other is Plug &&
+      runtimeType == other.runtimeType &&
+      address == other.address &&
+      _lastStatus == other._lastStatus &&
+      _offline == other._offline;
 
-    if (response == '{"POWER":"ON"}') {
-      return true;
-    } else {
-      assert(response == '{"POWER":"OFF"}');
-      return false;
-    }
-  }
-  // When problems: consider power separate from data.
+  @override
+  int get hashCode =>
+    address.hashCode ^ _lastStatus.hashCode ^ _offline.hashCode;
 }
