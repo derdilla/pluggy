@@ -1,13 +1,10 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasmota_plug_control/dev/manager.dart';
-import 'package:tasmota_plug_control/dev/plug.dart';
 
-import 'device_control.dart';
+import 'plug_card.dart';
 
-/// A column [DeviceControl]s for [Manager.plugs] available in context.
+/// A column [PlugCard]s for [Manager.plugs] available in context.
 class DevicesView extends StatelessWidget {
   const DevicesView({super.key});
 
@@ -19,7 +16,7 @@ class DevicesView extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final plug in plugs)
-          DeviceControl(
+          PlugCard(
             plug: plug,
           ),
       ],
