@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:tasmota_plug_control/dev/status.dart';
 
 /// Abstraction of a plug in the network that provides status and sends commands.
@@ -12,6 +13,8 @@ class Plug extends ChangeNotifier {
   Plug(this.address) {
     updateStatus();
   }
+
+  final http.Client _client = IOClient();
 
   /// Network address off the Plug to monitor.
   ///
@@ -38,17 +41,23 @@ class Plug extends ChangeNotifier {
       'cmnd': cmnd,
     });
     try {
+      await _client.get(url);
       final response = await http.get(url);
       if (offline) {
         _offline = false;
         notifyListeners();
       }
       return response.body;
-    } on SocketException {
+    } on http.ClientException {
+      // transport layer failure
       if (!offline) {
         _offline = true;
         notifyListeners();
       }
+      return "ERR-OFFLINE";
+    } catch (e) {
+      debugPrintStack();
+      print(e);
       return "ERR-OFFLINE";
     }
 
