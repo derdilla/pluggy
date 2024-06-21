@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SimpleStats extends StatelessWidget {
   const SimpleStats({super.key, required this.total, required this.current});
 
-  /// Total consumption in Wh.
+  /// Total consumption in kWh.
   final double total;
 
   /// Current consumption in W.
@@ -23,7 +23,7 @@ class SimpleStats extends StatelessWidget {
         _buildBox(
           top: Text('Total',
             style: Theme.of(context).textTheme.titleMedium),
-          bottom: Text('${total.toStringAsFixed(2)}Wh'),
+          bottom: Text('${total.toStringAsFixed(2)}kWh'),
         ),
       ],
     );

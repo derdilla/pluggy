@@ -11,7 +11,7 @@ class Status {
   /// Whether the plug is transmitting power.
   final bool active;
 
-  /// Total consumption in Wh.
+  /// Total consumption in kWh.
   final double total;
 
   /// Current consumption in W.
