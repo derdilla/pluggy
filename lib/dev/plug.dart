@@ -78,8 +78,8 @@ class Plug extends ChangeNotifier {
   Future<Status> updateStatus() async {
     final response = await _sendCommand('status 10');
     if (response != null) {
-      final Map<String, dynamic> json = jsonDecode(response);
       try {
+        final Map<String, dynamic> json = jsonDecode(response);
         // Sample:
         // {
         //   "TotalStartTime": "2024-06-07T18:30:35",
@@ -113,6 +113,8 @@ class Plug extends ChangeNotifier {
       } on NoSuchMethodError {
         // JSON format unexpected
         debugPrint('status JSON has unexpected format: $json');
+      } on FormatException {
+        debugPrint('FORMAT ERROR: No parsable json');
       }
     }
     return _lastStatus;

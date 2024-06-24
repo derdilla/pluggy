@@ -11,32 +11,56 @@ class AddDeviceForm extends StatefulWidget {
 }
 
 class _AddDeviceFormState extends State<AddDeviceForm> {
-  final controller = TextEditingController();
+  final _controller = TextEditingController();
+
+  String? _error;
+
+  bool _validating = false;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
+    return AlertDialog(
+      title: Text('Add Plug'),
+      content: TextField(
         autofocus: true,
-        controller: controller,
+        controller: _controller,
         onSubmitted: (_) => _onFormSubmit(),
         decoration: InputDecoration(
           labelText: 'Address',
           hintText: '127.0.0.1',
+          errorText: _error,
           border: const OutlineInputBorder(),
-          suffix: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _onFormSubmit, // TODO: validation
-          ),
+          suffix: _validating ? CircularProgressIndicator() : null,
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel'),
+        ),
+        ElevatedButton.icon(
+          icon: Icon(Icons.add),
+          label: Text('Add'),
+          onPressed: _onFormSubmit,
+        )
+      ],
     );
   }
 
-  void _onFormSubmit() {
-    final plug = Plug(controller.text);
-    widget.onAddPlug(plug);
-    Navigator.pop(context);
+  void _onFormSubmit() async {
+    setState(() {
+      _validating = true;
+    });
+    final plug = Plug(_controller.text);
+    if ((await plug.updateStatus()).active) {
+      widget.onAddPlug(plug);
+      Navigator.pop(context);
+    } else {
+      setState(() {
+        _error = 'The plug needs to be enabled and reachable to add.';
+        _validating = false;
+      });
+    }
+
   }
 }

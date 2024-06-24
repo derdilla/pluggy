@@ -30,9 +30,7 @@ Future<void> showCustomDialog(
         child: ScaleTransition(
           scale: animation,
           child: Material(
-            child: Card(
-              child: child,
-            ),
+            child: child,
           ),
         ),
       );
